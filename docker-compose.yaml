@@ -16,8 +16,11 @@ services:
     restart: always
     volumes:
       - ./todo:/app/todo
+    env_file: "aws.env" 
     environment:
       SQLALCHEMY_DATABASE_URI: postgresql://administrator:verySecretPassword@database:5432/todo
+      CELERY_BROKER_URL: sqs://
+      CELERY_RESULT_BACKEND: db+postgresql://administrator:verySecretPassword@database:5432/todo
     ports:
       - "6400:6400"
     depends_on:
@@ -33,8 +36,9 @@ services:
    build: 
     context: . 
     dockerfile: Dockerfile.dev 
-   restart: always 
+   restart: always
+   env_file: "aws.env" 
    environment: 
-    CELERY_BROKER_URL: redis://redis:6379 
-    CELERY_RESULT_BACKEND: redis://redis:6379 
-   command: poetry run celery --app todo.tasks.ical worker --loglevel=inf
+    CELERY_BROKER_URL: sqs://
+    CELERY_RESULT_BACKEND: db+postgresql://administrator:verySecretPassword@database:5432/todo
+   command: poetry run celery --app todo.tasks.ical worker --loglevel=info
